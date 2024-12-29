@@ -41,131 +41,192 @@
       font-weight: bold;
       transition: width 0.5s ease-in-out;
     }
-    .label {
-      margin-top: 10px;
-      font-size: 1.2em;
-    }
     footer {
       margin-top: 50px;
       font-size: 0.9em;
       color: rgba(255, 255, 255, 0.8);
     }
+    #language-selector {
+      margin-top: 20px;
+      font-size: 1em;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.8);
+      color: #333;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <h1>Barre de progression</h1>
+  <h1 id="title">Barre de progression</h1>
   <h2 id="current-date"></h2>
 
-  <!-- Barre de progression de la journée -->
-  <div class="label">Progression de la journée</div>
+  <div class="label" id="day-label">Progression de la journée</div>
   <div class="progress-container">
     <div class="progress-bar" id="day-progress-bar">0%</div>
   </div>
 
-  <!-- Barre de progression de la semaine -->
-  <div class="label">Progression de la semaine</div>
+  <div class="label" id="week-label">Progression de la semaine</div>
   <div class="progress-container">
     <div class="progress-bar" id="week-progress-bar">0%</div>
   </div>
 
-  <!-- Barre de progression du mois -->
-  <div class="label">Progression du mois</div>
+  <div class="label" id="month-label">Progression du mois</div>
   <div class="progress-container">
     <div class="progress-bar" id="month-progress-bar">0%</div>
   </div>
 
-  <!-- Barre de progression de l'année -->
-  <div class="label">Progression de l'année</div>
+  <div class="label" id="year-label">Progression de l'année</div>
   <div class="progress-container">
     <div class="progress-bar" id="year-progress-bar">0%</div>
   </div>
 
-  <!-- Barre de progression du siècle -->
-  <div class="label">Progression du siècle</div>
+  <div class="label" id="century-label">Progression du siècle</div>
   <div class="progress-container">
     <div class="progress-bar" id="century-progress-bar">0%</div>
   </div>
 
-  <footer>&copy; <span id="footer-year"></span> Suivez vos progrès dans le temps !</footer>
+  <footer>
+    &copy; <span id="footer-year"></span> <span id="footer-text">Suivez vos progrès dans le temps !</span>
+    <br>
+    <select id="language-selector">
+      <option value="fr">Français</option>
+      <option value="en">English</option>
+      <option value="es">Español</option>
+    </select>
+  </footer>
+
   <script>
-    // Calcul de la progression
-    function calculateProgress(current, start, end) {
-      return ((current - start) / (end - start)) * 100;
+    const translations = {
+      fr: {
+        title: "Barre de progression",
+        dayLabel: "Progression de la journée",
+        weekLabel: "Progression de la semaine",
+        monthLabel: "Progression du mois",
+        yearLabel: "Progression de l'année",
+        centuryLabel: "Progression du siècle",
+        footerText: "Suivez vos progrès dans le temps !",
+        currentDate: "Nous sommes le {day}/{month}/{year}, {hours}:{minutes}:{seconds}, semaine {weekNumber}, siècle {century}",
+
+      },
+      en: {
+        title: "Progress Bar",
+        dayLabel: "Day Progress",
+        weekLabel: "Week Progress",
+        monthLabel: "Month Progress",
+        yearLabel: "Year Progress",
+        centuryLabel: "Century Progress",
+        footerText: "Track your progress through time!",
+        currentDate: "Today is {day}/{month}/{year}, {hours}:{minutes}:{seconds}, week {weekNumber}, century {century}",
+
+      },
+      es: {
+        title: "Barra de progreso",
+        dayLabel: "Progreso del día",
+        weekLabel: "Progreso de la semana",
+        monthLabel: "Progreso del mes",
+        yearLabel: "Progreso del año",
+        centuryLabel: "Progreso del siglo",
+        footerText: "¡Sigue tu progreso en el tiempo!",
+            currentDate: "Hoy es {day}/{month}/{year}, {hours}:{minutes}:{seconds}, semana {weekNumber}, siglo {century}",
+
+      },
+    };
+
+    function updateLanguage(language) {
+      const { title, dayLabel, weekLabel, monthLabel, yearLabel, centuryLabel, footerText } = translations[language];
+      document.getElementById("title").textContent = title;
+      document.getElementById("day-label").textContent = dayLabel;
+      document.getElementById("week-label").textContent = weekLabel;
+      document.getElementById("month-label").textContent = monthLabel;
+      document.getElementById("year-label").textContent = yearLabel;
+      document.getElementById("century-label").textContent = centuryLabel;
+      document.getElementById("footer-text").textContent = footerText;
+    }
+
+    document.getElementById("language-selector").addEventListener("change", (event) => {
+      updateLanguage(event.target.value);
+    });
+
+    function getISOWeek(date) {
+        const tempDate = new Date(date);
+        tempDate.setHours(0, 0, 0, 0);
+        const dayNumber = (tempDate.getDay() || 7) - 1; // Lundi = 0
+        tempDate.setDate(tempDate.getDate() - dayNumber + 3); // Aller au jeudi
+        const yearStart = new Date(tempDate.getFullYear(), 0, 4); // Premier jeudi de l'année
+        const weekNumber = Math.floor((tempDate - yearStart) / (7 * 24 * 60 * 60 * 1000)) + 1;
+        return weekNumber;
     }
 
     function updateProgressBars() {
-      const now = new Date();
+        const now = new Date();
 
-      // Progression de la journée
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-      const dayProgress = calculateProgress(now, startOfDay, endOfDay).toFixed(2);
-      updateProgressBar("day-progress-bar", dayProgress);
+        // Progression de la journée
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        const dayProgress = ((now - startOfDay) / (endOfDay - startOfDay) * 100).toFixed(2);
+        document.getElementById("day-progress-bar").style.width = dayProgress + "%";
+        document.getElementById("day-progress-bar").textContent = dayProgress + "%";
 
-      // Progression de la semaine
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - now.getDay());
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 7);
-      const weekProgress = calculateProgress(now, startOfWeek, endOfWeek).toFixed(2);
-      updateProgressBar("week-progress-bar", weekProgress);
+        // Progression de la semaine
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7)); // Début de semaine : lundi
+        startOfWeek.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 7); // Fin de semaine : lundi suivant
+        const weekProgress = ((now - startOfWeek) / (endOfWeek - startOfWeek) * 100).toFixed(2);
+        document.getElementById("week-progress-bar").style.width = weekProgress + "%";
+        document.getElementById("week-progress-bar").textContent = weekProgress + "%";
 
-      // Progression du mois
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-      const monthProgress = calculateProgress(now, startOfMonth, endOfMonth).toFixed(2);
-      updateProgressBar("month-progress-bar", monthProgress);
+        // Progression du mois
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const monthProgress = ((now - startOfMonth) / (endOfMonth - startOfMonth) * 100).toFixed(2);
+        document.getElementById("month-progress-bar").style.width = monthProgress + "%";
+        document.getElementById("month-progress-bar").textContent = monthProgress + "%";
 
-      // Progression de l'année
-      const startOfYear = new Date(now.getFullYear(), 0, 1);
-      const endOfYear = new Date(now.getFullYear() + 1, 0, 1);
-      const yearProgress = calculateProgress(now, startOfYear, endOfYear).toFixed(2);
-      updateProgressBar("year-progress-bar", yearProgress);
+        // Progression de l'année
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const endOfYear = new Date(now.getFullYear() + 1, 0, 1);
+        const yearProgress = ((now - startOfYear) / (endOfYear - startOfYear) * 100).toFixed(2);
+        document.getElementById("year-progress-bar").style.width = yearProgress + "%";
+        document.getElementById("year-progress-bar").textContent = yearProgress + "%";
 
-      // Progression du siècle
-      const startOfCentury = new Date(Math.floor(now.getFullYear() / 100) * 100, 0, 1);
-      const endOfCentury = new Date(Math.floor(now.getFullYear() / 100) * 100 + 100, 0, 1);
-      const centuryProgress = calculateProgress(now, startOfCentury, endOfCentury).toFixed(2);
-      updateProgressBar("century-progress-bar", centuryProgress);
+        // Progression du siècle
+        const startOfCentury = new Date(Math.floor(now.getFullYear() / 100) * 100, 0, 1);
+        const endOfCentury = new Date(startOfCentury.getFullYear() + 100, 0, 1);
+        const centuryProgress = ((now - startOfCentury) / (endOfCentury - startOfCentury) * 100).toFixed(2);
+        document.getElementById("century-progress-bar").style.width = centuryProgress + "%";
+        document.getElementById("century-progress-bar").textContent = centuryProgress + "%";
     }
 
-    function updateProgressBar(id, progress) {
-      const bar = document.getElementById(id);
-      bar.style.width = progress + "%";
-      bar.textContent = progress + "%";
+    function setCurrentDate() {
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const weekNumber = getISOWeek(now);
+        const century = Math.floor(year / 100) + 1;
+
+        document.getElementById("current-date").textContent =
+            `Nous sommes le ${day}/${month}/${year}, ${hours}:${minutes}:${seconds}, semaine ${weekNumber}, siècle ${century}`;
+        document.getElementById("footer-year").textContent = year;
     }
 
-    function getISOWeekNumber(date) {
-  const tempDate = new Date(date.getTime());
-  tempDate.setHours(0, 0, 0, 0);
-  tempDate.setDate(tempDate.getDate() + 3 - ((tempDate.getDay() + 6) % 7)); // Ajuste au jeudi
-  const week1 = new Date(tempDate.getFullYear(), 0, 4); // Premier jeudi de l'année
-  return 1 + Math.round(((tempDate - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
-}
-
-function setCurrentDate() {
-  const now = new Date();
-  const day = String(now.getDate()).padStart(2, '0');
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const year = now.getFullYear();
-  const weekNumber = getISOWeekNumber(now); // Calcul correct du numéro de semaine
-  const century = Math.floor(year / 100) + 1;
-
-  document.getElementById("current-date").textContent = 
-    `Nous sommes le ${day}/${month}/${year}, semaine ${weekNumber}, siècle ${century}`;
-  document.getElementById("footer-year").textContent = year;
-}
-
-
-    // Initialisation
     setCurrentDate();
     updateProgressBars();
-
-    // Mise à jour dynamique toutes les secondes
     setInterval(() => {
-      setCurrentDate();
-      updateProgressBars();
+        setCurrentDate();
+        updateProgressBars();
     }, 1000);
+
+    // Initialisation de la langue
+    updateLanguage("fr");
   </script>
 </body>
 </html>
