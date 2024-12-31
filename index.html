@@ -302,14 +302,13 @@
       updateLanguage(event.target.value);
     });
 
-    function getISOWeek(date) {
-      const tempDate = new Date(date);
-      tempDate.setHours(0, 0, 0, 0);
-      const dayNumber = (tempDate.getDay() || 7) - 1; // Lundi = 0
-      tempDate.setDate(tempDate.getDate() - dayNumber + 3); // Aller au jeudi
-      const yearStart = new Date(tempDate.getFullYear(), 0, 4); // Premier jeudi de l'année
-      const weekNumber = Math.floor((tempDate - yearStart) / (7 * 24 * 60 * 60 * 1000)) + 1;
-      return weekNumber;
+    function getISOWeek (date) {
+const tempDate = new Date(date);
+tempDate. setHours(0, 0, 0, 0);
+const dayNumber = (tempDate.getDay () || 7) - 1; // Lundi = 0
+tempDate.setDate(tempDate.getDate() - dayNumber + 3); // Aller au jeudi const yearStart = new Date(tempDate.getFullYear (), 0, 4); // Premier jeudi de l'année
+const weekNumber = Math. floor ((tempDate - yearStart) / (7 * 24 * 60 * 60 * 1000)) + 1;
+return weekNumber;
     }
 
     function updateProgressBars() {
