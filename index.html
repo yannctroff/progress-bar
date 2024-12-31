@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,15 +14,18 @@
       background: linear-gradient(120deg, #f6d365, #fda085);
       color: #fff;
     }
+
     h1 {
       margin-top: 20px;
       font-size: 2.5em;
     }
+
     h2 {
       margin: 10px 0 30px;
       font-size: 1.5em;
       color: #ffeb3b;
     }
+
     .progress-container {
       margin: 20px auto;
       width: 80%;
@@ -31,6 +35,7 @@
       height: 40px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
+
     .progress-bar {
       height: 100%;
       width: 0%;
@@ -41,11 +46,13 @@
       font-weight: bold;
       transition: width 0.5s ease-in-out;
     }
+
     footer {
       margin-top: 50px;
       font-size: 0.9em;
       color: rgba(255, 255, 255, 0.8);
     }
+
     #language-selector {
       margin-top: 20px;
       font-size: 1em;
@@ -57,8 +64,77 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       cursor: pointer;
     }
+
+    .overlay {
+      display: none;
+      /* Masquer l'overlay par défaut */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
+    }
+
+    .modal {
+      display: none;
+      /* Masquer la fenêtre modale par défaut */
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(120deg, #f6d365, #fda085);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px orange;
+      z-index: 1000;
+      max-width: 90%;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      font-size: 1.5em;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 1.5em;
+      background: transparent;
+      border: none;
+      color: #ff0000;
+      cursor: pointer;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: orange;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-size: 1.2em;
+      cursor: pointer;
+      box-shadow: 0 4px 6px linear-gradient(120deg, #f6d365, #fda085);
+    }
+
+    .countdown-button {
+      background-color: orange;
+      color: rgb(255, 187, 0);
+      font-size: 1em;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
   </style>
 </head>
+
 <body>
   <h1 id="title">Barre de progression</h1>
   <h2 id="current-date"></h2>
@@ -96,9 +172,88 @@
       <option value="en">English</option>
       <option value="es">Español</option>
     </select>
+    <br>
+    <!-- Bouton pour afficher les comptes à rebours -->
+    <button id="countdown-button">Voir les comptes à rebours</button>
+
+    <!-- Fenêtre modale -->
+    <div class="overlay" id="modal-overlay"></div>
+    <div class="modal" id="countdown-modal">
+      <button class="modal-close" id="close-modal">&times;</button>
+      <div class="modal-header">Comptes à rebours</div>
+      <div id="countdown-content"></div>
+    </div>
   </footer>
 
   <script>
+    // Définition des événements
+    const events = [
+      { name: "Jour de l'An", date: new Date(new Date().getFullYear() + 1, 0, 1) },
+      { name: "Épiphanie", date: new Date(new Date().getFullYear(), 0, 6) },
+      { name: "Mardi Gras", date: new Date(new Date().getFullYear(), 1, 13) },
+      { name: "Passage à l'heure d'été", date: new Date(new Date().getFullYear(), 2, 31) },
+      { name: "Pâques", date: new Date(new Date().getFullYear(), 3, 1) },
+      { name: "Fête des Mères", date: new Date(new Date().getFullYear(), 4, 28) },
+      { name: "Fête des Pères", date: new Date(new Date().getFullYear(), 5, 18) },
+      { name: "Passage à l'heure d'hiver", date: new Date(new Date().getFullYear(), 9, 28) },
+    ];
+
+    // Fonction pour mettre à jour les comptes à rebours
+    function updateCountdowns() {
+      const now = new Date();
+      const content = events.map(event => {
+        let eventDate = new Date(event.date);
+
+        // Si la date de l'événement est déjà passée cette année, on ajuste pour l'année prochaine
+        if (eventDate < now && event.name !== "Jour de l'An") {
+          eventDate.setFullYear(now.getFullYear() + 1); // Mettre l'événement à l'année suivante
+        }
+
+        const diff = eventDate - now;
+
+        if (diff <= 0) {
+          // Pour le Jour de l'An, afficher "Bonne année"
+          if (event.name === "Jour de l'An" && now.getDate() === 1 && now.getMonth() === 0) {
+            return `<strong>${event.name} :</strong> Bonne année ${now.getFullYear()} !`;
+          }
+          return `<strong>${event.name} :</strong> Événement terminé.`;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diff / (1000 * 60)) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+
+        return `<strong>${event.name} :</strong> ${days}j ${hours}h ${minutes}m ${seconds}s restants.`;
+      }).join("<br>");
+
+      document.getElementById("countdown-content").innerHTML = content;
+    }
+
+    // Gestion de la fenêtre modale
+    const countdownButton = document.getElementById("countdown-button");
+    const modal = document.getElementById("countdown-modal");
+    const overlay = document.getElementById("modal-overlay");
+    const closeModalButton = document.getElementById("close-modal");
+
+    countdownButton.addEventListener("click", () => {
+      updateCountdowns();
+      modal.style.display = "block";
+      overlay.style.display = "block";
+      // Mettre à jour les comptes à rebours toutes les secondes
+      setInterval(updateCountdowns, 1000);
+    });
+
+    closeModalButton.addEventListener("click", () => {
+      modal.style.display = "none";
+      overlay.style.display = "none";
+    });
+
+    overlay.addEventListener("click", () => {
+      modal.style.display = "none";
+      overlay.style.display = "none";
+    });
+
     const translations = {
       fr: {
         title: "Barre de progression",
@@ -109,7 +264,6 @@
         centuryLabel: "Progression du siècle",
         footerText: "Suivez vos progrès dans le temps !",
         currentDate: "Nous sommes le {day}/{month}/{year}, {hours}:{minutes}:{seconds}, semaine {weekNumber}, siècle {century}",
-
       },
       en: {
         title: "Progress Bar",
@@ -120,7 +274,6 @@
         centuryLabel: "Century Progress",
         footerText: "Track your progress through time!",
         currentDate: "Today is {day}/{month}/{year}, {hours}:{minutes}:{seconds}, week {weekNumber}, century {century}",
-
       },
       es: {
         title: "Barra de progreso",
@@ -130,8 +283,7 @@
         yearLabel: "Progreso del año",
         centuryLabel: "Progreso del siglo",
         footerText: "¡Sigue tu progreso en el tiempo!",
-            currentDate: "Hoy es {day}/{month}/{year}, {hours}:{minutes}:{seconds}, semana {weekNumber}, siglo {century}",
-
+        currentDate: "Hoy es {day}/{month}/{year}, {hours}:{minutes}:{seconds}, semana {weekNumber}, siglo {century}",
       },
     };
 
@@ -151,81 +303,84 @@
     });
 
     function getISOWeek(date) {
-    const tempDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const day = (tempDate.getDay() + 6) % 7; // Lundi = 0
-    tempDate.setDate(tempDate.getDate() - day + 3); // Aller au jeudi de cette semaine
-    const firstThursday = new Date(tempDate.getFullYear(), 0, 4); // Premier jeudi de l'année
-    const weekNumber = Math.ceil(((tempDate - firstThursday) / (7 * 24 * 60 * 60 * 1000)) + 1);
-    return weekNumber;
-}
+      const tempDate = new Date(date);
+      tempDate.setHours(0, 0, 0, 0);
+      const dayNumber = (tempDate.getDay() || 7) - 1; // Lundi = 0
+      tempDate.setDate(tempDate.getDate() - dayNumber + 3); // Aller au jeudi
+      const yearStart = new Date(tempDate.getFullYear(), 0, 4); // Premier jeudi de l'année
+      const weekNumber = Math.floor((tempDate - yearStart) / (7 * 24 * 60 * 60 * 1000)) + 1;
+      return weekNumber;
+    }
 
     function updateProgressBars() {
-        const now = new Date();
+      const now = new Date();
 
-        // Progression de la journée
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-        const dayProgress = ((now - startOfDay) / (endOfDay - startOfDay) * 100).toFixed(2);
-        document.getElementById("day-progress-bar").style.width = dayProgress + "%";
-        document.getElementById("day-progress-bar").textContent = dayProgress + "%";
+      // Progression de la journée
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      const dayProgress = ((now - startOfDay) / (endOfDay - startOfDay) * 100).toFixed(2);
+      document.getElementById("day-progress-bar").style.width = dayProgress + "%";
+      document.getElementById("day-progress-bar").textContent = dayProgress + "%";
 
-        // Progression de la semaine
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7)); // Début de semaine : lundi
-        startOfWeek.setHours(0, 0, 0, 0);
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 7); // Fin de semaine : lundi suivant
-        const weekProgress = ((now - startOfWeek) / (endOfWeek - startOfWeek) * 100).toFixed(2);
-        document.getElementById("week-progress-bar").style.width = weekProgress + "%";
-        document.getElementById("week-progress-bar").textContent = weekProgress + "%";
+      // Progression de la semaine
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7)); // Début de semaine : lundi
+      startOfWeek.setHours(0, 0, 0, 0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 7); // Fin de semaine : lundi suivant
+      const weekProgress = ((now - startOfWeek) / (endOfWeek - startOfWeek) * 100).toFixed(2);
+      document.getElementById("week-progress-bar").style.width = weekProgress + "%";
+      document.getElementById("week-progress-bar").textContent = weekProgress + "%";
 
-        // Progression du mois
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-        const monthProgress = ((now - startOfMonth) / (endOfMonth - startOfMonth) * 100).toFixed(2);
-        document.getElementById("month-progress-bar").style.width = monthProgress + "%";
-        document.getElementById("month-progress-bar").textContent = monthProgress + "%";
+      // Progression du mois
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const monthProgress = ((now - startOfMonth) / (endOfMonth - startOfMonth) * 100).toFixed(2);
+      document.getElementById("month-progress-bar").style.width = monthProgress + "%";
+      document.getElementById("month-progress-bar").textContent = monthProgress + "%";
 
-        // Progression de l'année
-        const startOfYear = new Date(now.getFullYear(), 0, 1);
-        const endOfYear = new Date(now.getFullYear() + 1, 0, 1);
-        const yearProgress = ((now - startOfYear) / (endOfYear - startOfYear) * 100).toFixed(2);
-        document.getElementById("year-progress-bar").style.width = yearProgress + "%";
-        document.getElementById("year-progress-bar").textContent = yearProgress + "%";
+      // Progression de l'année
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+      const endOfYear = new Date(now.getFullYear() + 1, 0, 1);
+      const yearProgress = ((now - startOfYear) / (endOfYear - startOfYear) * 100).toFixed(2);
+      document.getElementById("year-progress-bar").style.width = yearProgress + "%";
+      document.getElementById("year-progress-bar").textContent = yearProgress + "%";
 
-        // Progression du siècle
-        const startOfCentury = new Date(Math.floor(now.getFullYear() / 100) * 100, 0, 1);
-        const endOfCentury = new Date(startOfCentury.getFullYear() + 100, 0, 1);
-        const centuryProgress = ((now - startOfCentury) / (endOfCentury - startOfCentury) * 100).toFixed(2);
-        document.getElementById("century-progress-bar").style.width = centuryProgress + "%";
-        document.getElementById("century-progress-bar").textContent = centuryProgress + "%";
+      // Progression du siècle
+      const startOfCentury = new Date(Math.floor(now.getFullYear() / 100) * 100, 0, 1);
+      const endOfCentury = new Date(startOfCentury.getFullYear() + 100, 0, 1);
+      const centuryProgress = ((now - startOfCentury) / (endOfCentury - startOfCentury) * 100).toFixed(2);
+      document.getElementById("century-progress-bar").style.width = centuryProgress + "%";
+      document.getElementById("century-progress-bar").textContent = centuryProgress + "%";
     }
 
     function setCurrentDate() {
-        const now = new Date();
-        const day = String(now.getDate()).padStart(2, '0');
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const year = now.getFullYear();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        const weekNumber = getISOWeek(now);
-        const century = Math.floor(year / 100) + 1;
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const weekNumber = getISOWeek(now);
+      const century = Math.floor(year / 100) + 1;
 
-        document.getElementById("current-date").textContent =
-            `Nous sommes le ${day}/${month}/${year}, ${hours}:${minutes}:${seconds}, semaine ${weekNumber}, siècle ${century}`;
-        document.getElementById("footer-year").textContent = year;
+      document.getElementById("current-date").textContent =
+        `Nous sommes le ${day}/${month}/${year}, ${hours}:${minutes}:${seconds}, semaine ${weekNumber}, siècle ${century}`;
+      document.getElementById("footer-year").textContent = year;
     }
 
     setCurrentDate();
     updateProgressBars();
     setInterval(() => {
-        setCurrentDate();
-        updateProgressBars();
+      setCurrentDate();
+      updateProgressBars();
     }, 1000);
 
     // Initialisation de la langue
     updateLanguage("fr");
   </script>
+
 </body>
+
 </html>
