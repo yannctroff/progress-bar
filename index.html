@@ -303,14 +303,13 @@
     });
 
     function getISOWeek(date) {
-      const tempDate = new Date(date);
+      const tempDate = new Date(date.getTime());
       tempDate.setHours(0, 0, 0, 0);
-      const dayNumber = (tempDate.getDay() || 7) - 1; // Lundi = 0
-      tempDate.setDate(tempDate.getDate() - dayNumber + 3); // Aller au jeudi
-      const yearStart = new Date(tempDate.getFullYear(), 0, 4); // Premier jeudi de l'année
-      const weekNumber = Math.floor((tempDate - yearStart) / (7 * 24 * 60 * 60 * 1000)) + 1;
-      return weekNumber;
+      tempDate.setDate(tempDate.getDate() + 3 - (tempDate.getDay() || 7));
+      const firstThursday = new Date(tempDate.getFullYear(), 0, 4);
+      return Math.ceil(((tempDate - firstThursday) / (7 * 24 * 60 * 60 * 1000)) + 1);
     }
+
 
     function updateProgressBars() {
       const now = new Date();
@@ -347,9 +346,9 @@
       document.getElementById("year-progress-bar").textContent = yearProgress + "%";
 
       // Progression du siècle
-      const startOfCentury = new Date(Math.floor(now.getFullYear() / 100) * 100, 0, 1);
-      const endOfCentury = new Date(startOfCentury.getFullYear() + 100, 0, 1);
-      const centuryProgress = ((now - startOfCentury) / (endOfCentury - startOfCentury) * 100).toFixed(2);
+const startOfCentury = new Date(Math.floor(now.getFullYear() / 100) * 100, 0, 1); // Début du siècle (1er janvier de l'année 00)
+const endOfCentury = new Date((Math.floor(now.getFullYear() / 100) + 1) * 100, 0, 1); // Fin du siècle (1er janvier de l'année 100)
+const centuryProgress = ((now - startOfCentury) / (endOfCentury - startOfCentury) * 100).toFixed(2);g
       document.getElementById("century-progress-bar").style.width = centuryProgress + "%";
       document.getElementById("century-progress-bar").textContent = centuryProgress + "%";
     }
