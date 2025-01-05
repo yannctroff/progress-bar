@@ -348,7 +348,7 @@
       // Progression du siècle
 const startOfCentury = new Date(Math.floor(now.getFullYear() / 100) * 100, 0, 1); // Début du siècle (1er janvier de l'année 00)
 const endOfCentury = new Date((Math.floor(now.getFullYear() / 100) + 1) * 100, 0, 1); // Fin du siècle (1er janvier de l'année 100)
-const centuryProgress = ((now - startOfCentury) / (endOfCentury - startOfCentury) * 100).toFixed(2);g
+const centuryProgress = ((now - startOfCentury) / (endOfCentury - startOfCentury) * 100).toFixed(2);
       document.getElementById("century-progress-bar").style.width = centuryProgress + "%";
       document.getElementById("century-progress-bar").textContent = centuryProgress + "%";
     }
